@@ -31,11 +31,6 @@ var colors = [
     "#cccccc", // 17 almost white
 ];
 
-
-function randCell() {
-    return Math.floor(Math.random() * 9)
-}
-
 var matrix = [];
 for (var i = 0; i < numcells; ++i) {
     matrix.push(0);
@@ -69,14 +64,18 @@ redraw();
 
 //-- cursor movement ----------------------------
 
-cursor.x = 0;
-cursor.y = 0;
+cursor.x = 3;
+cursor.y = 7;
+cursor.attr({
+    x : cursor.x * cellsize + 4,
+    y : cursor.y * cellsize + 4 });
 
 function movecursor() {
     cursor.transition().duration(50).attr({
 	x : cursor.x * cellsize + 4,
 	y : cursor.y * cellsize + 4 });
 }
+movecursor();
 
 function clamp(val, min, max : number) {
     return val < min ? min
@@ -138,6 +137,42 @@ document.onkeydown = function(e) {
     return false;
 }
 
+// -- gravity --------------------------------------------------
+
+function randCell() {
+    return 1 + Math.floor(Math.random() * 8)
+}
+
+function drop() {
+    for (var i = 0; i < 9; i++) {
+	matrix[i] = randCell();
+    }
+    redraw();
+}
+
+function runGravity() {
+    var block = gw * (gh-2) + gw-1;
+    var below = block + gw;
+    var cxy = cursor.y * gw + cursor.x;
+    for (var y = gh-2; y >= 0; y--)
+    for (var x = gw-1; x >= 0; x--) {
+
+	// the cursor can hold blocks in the air
+	if ((block == cxy) ||
+	    (block == cxy + 1) ||
+	    (block == cxy + gw) ||
+	    (block == cxy + gw + 1)) {
+	    // pass
+	} else if (! matrix[below]) {
+	    matrix[below] = matrix[block];
+	    matrix[block] = 0;
+	}
+	block--; below--;
+    }
+    redraw();
+}
+
+drop();
 
 // -- counter --------------------------------------------------
 
@@ -154,7 +189,9 @@ function tick() {
     if (seconds >= 10) {
 	clock.start = now();
 	seconds = 0;
+	drop();
     }
+    runGravity();
     clockview.text((10-seconds).toString());
 }
 var clocktask = window.setInterval(tick, 100);
