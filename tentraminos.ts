@@ -57,6 +57,7 @@ function redraw() {
     cells.attr({
 	x: function(i:number){ return cellsize * (i % 9); },
 	y: function(i:number){ return cellsize * Math.floor(i/9); },
+	opacity: function(i:number){ return matrix[i] == 0 ? 0 : 1 },
 	fill: function(i:number){ return colors[matrix[i]] },
 	stroke: "black",
 	width: cellsize,
