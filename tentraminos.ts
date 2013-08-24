@@ -123,7 +123,9 @@ document.onkeydown = function(e) {
 	case 38 : codes['^'](); break;
 	case 39 : codes['>'](); break;
 	case 40 : codes['v'](); break;
-      default: console.log('code:', code)
+      default:
+	console.log('code:', code);
+	return true;
     }
     movecursor();
     redraw()
