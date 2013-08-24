@@ -26,3 +26,10 @@ svg {
 #scoretxt {
     top: 100px;
 }
+
+#controls {
+    position : absolute;
+    left: 360px;
+    top: 180px;
+    font-family: verdana, arial, sans;x
+}
