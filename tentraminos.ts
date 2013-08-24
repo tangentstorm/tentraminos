@@ -7,7 +7,10 @@ var cells = d3.select("#cells").selectAll("rect")
 var cursor = d3.select("#cursor");
 var gw = 9; // grid width
 var gh = 9; // grid height
-
+var state = {
+    score : 0,
+    paused: false,
+}
 var colors = [
 
     "#292929", // 0 almost black
@@ -108,6 +111,7 @@ var codes = {
 	matrix[ cxy + gw + 1 ] = matrix[ cxy      + 1 ];  // v
 	matrix[ cxy      + 1 ] = tmp;                     // >
     },
+    'p' : ()=> { state.paused = !state.paused; }
 }
 
 
@@ -120,6 +124,7 @@ var dvorak = {
     84 : 'v', // t
     79 : '(', // o
     85 : ')', // j
+    80 : 'p', // p
 }
 var keymap = dvorak;
 
@@ -244,15 +249,17 @@ var clockview = d3.select("#clock");
 
 var clock = { start: now() };
 function tick() {
-    var ms = now();
-    var seconds = Math.floor((ms-clock.start) / 1000);
-    if (seconds >= 10) {
-	clock.start = now();
-	seconds = 0;
-	drop();
+    if (!state.paused) {
+	var ms = now();
+	var seconds = Math.floor((ms-clock.start) / 1000);
+	if (seconds >= 10) {
+	    clock.start = now();
+	    seconds = 0;
+	    drop();
+	}
+	clockview.text((10-seconds).toString());
+	runGravity();
+	markshapes();
     }
-    clockview.text((10-seconds).toString());
-    runGravity();
-    markshapes();
 }
 var clocktask = window.setInterval(tick, 100);
