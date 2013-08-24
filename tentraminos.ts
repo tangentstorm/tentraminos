@@ -129,3 +129,24 @@ document.onkeydown = function(e) {
     redraw()
     return false;
 }
+
+
+// -- counter --------------------------------------------------
+
+function now() { // current time in ms
+    return new Date().getTime();
+}
+
+var clockview = d3.select("#clock");
+
+var clock = { start: now() };
+function tick() {
+    var ms = now();
+    var seconds = Math.floor((ms-clock.start) / 1000);
+    if (seconds >= 10) {
+	clock.start = now();
+	seconds = 0;
+    }
+    clockview.text((10-seconds).toString());
+}
+var clocktask = window.setInterval(tick, 100);
