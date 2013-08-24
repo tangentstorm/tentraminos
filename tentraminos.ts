@@ -1,6 +1,11 @@
 var d3;
-var cells = d3.select("svg").selectAll("rect").data(d3.range(81));
 var cellsize = 32;
+var numcells = 81; // you can't have 10 in a row, for obvious reasons :)
+
+var cells = d3.select("#cells").selectAll("rect")
+    .data(d3.range(numcells));
+var cursor = d3.select("#cursor");
+
 
 var colors = [
 
@@ -25,11 +30,80 @@ var colors = [
     "#cccccc", // 17 almost white
 ];
 
-cells.enter().append("rect")
-  .attr({ 
+var matrix = [];
+for (var i = 0; i < numcells; ++i) {
+    matrix.push(Math.floor(Math.random() * 9));
+}
+
+cursor.attr({
+    x: 4,
+    y: 4,
+    width: cellsize * 2-8,
+    height: cellsize * 2-8,
+    "stroke-width": 8,
+    "fill-opacity": 0,
+    stroke : "black"
+});
+
+cells.enter().append("rect");
+cells.attr({ 
       x: function(i:number){ return cellsize * (i % 9); },
       y: function(i:number){ return cellsize * Math.floor(i/9); },
-      fill: function(i:number){ return colors[i % colors.length] },
+      fill: function(i:number){ return colors[matrix[i]] },
+      stroke: "black",
       width: cellsize,
       height: cellsize,
   });
+
+
+//-- cursor movement ----------------------------
+
+cursor.x = 0;
+cursor.y = 0;
+
+function movecursor() {
+    cursor.transition().duration(50).attr({
+	x : cursor.x * cellsize + 4,
+	y : cursor.y * cellsize + 4 });
+}
+
+function clamp(val, min, max : number) {
+    return val < min ? min 
+         : val > max ? max
+         : val;
+}
+
+var codes = {
+    '^' : ()=> { cursor.y = clamp( cursor.y - 1, 0, 7 ); },
+    'v' : ()=> { cursor.y = clamp( cursor.y + 1, 0, 7 ); },
+    '<' : ()=> { cursor.x = clamp( cursor.x - 1, 0, 7 ); },
+    '>' : ()=> { cursor.x = clamp( cursor.x + 1, 0, 7 ); },
+}
+
+
+// -- keyboard controls -------------------------
+
+var dvorak = { 
+    72 : '<', // f
+    67 : '^', // c
+    78 : '>', // n
+    84 : 'v', // t
+}
+var keymap = dvorak;
+
+
+document.onkeydown = function(e) {
+    var code = window.event? event.keyCode: e.keyCode;
+    if (keymap.hasOwnProperty(code)) codes[keymap[code]]();
+    else switch (code) {
+        case 37 : codes['<'](); break;
+	case 38 : codes['^'](); break;
+	case 39 : codes['>'](); break;
+        case 40 : codes['v'](); break;
+      default: console.log('code:', code)
+    }
+    movecursor();
+    return false;
+}
+
+
