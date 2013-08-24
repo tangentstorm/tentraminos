@@ -10,13 +10,19 @@ svg {
     padding: 64px;
 }
 
-#clock {
-    position : absolute;
-    left: 360px;
-    top: 50px;
+.gametext {
     font-family: raleway, sans-serif;
     font-weight: 900;
     font-size: 32pt;
     color: #ccc;
     text-shadow: 2px 2px #222;
+}
+
+#clocktxt, #scoretxt {
+    position : absolute;
+    left: 360px;
+    top: 50px;
+}
+#scoretxt {
+    top: 100px;
 }

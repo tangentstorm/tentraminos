@@ -1,16 +1,22 @@
 var d3;
-var cellsize = 32;
-var numcells = 81; // you can't have 10 in a row, for obvious reasons :)
 
-var cells = d3.select("#cells").selectAll("rect")
-    .data(d3.range(numcells));
-var cursor = d3.select("#cursor");
-var gw = 9; // grid width
+var cellsize = 32;
+var gw = 9; // grid width: can't have 10 in a row, for obvious reasons :)
 var gh = 9; // grid height
+var numcells = gw * gh;
+
 var state = {
+    clock : 0,
     score : 0,
     paused: false,
 }
+
+var clockdiv = d3.select("#clock");
+var scorediv = d3.select("#score");
+var cursor = d3.select("#cursor");
+var cells = d3.select("#cells").selectAll("rect")
+    .data(d3.range(numcells));
+
 var colors = [
 
     "#292929", // 0 almost black
@@ -65,9 +71,10 @@ function redraw() {
 	width: cellsize,
 	height: cellsize,
     });
+    clockdiv.text(state.clock.toString());
+    scorediv.text(state.score.toString());
 }
 
-redraw();
 
 //-- cursor movement ----------------------------
 
@@ -142,7 +149,6 @@ document.onkeydown = function(e) {
 	return true;
     }
     movecursor();
-    redraw()
     return false;
 }
 
@@ -156,7 +162,6 @@ function drop() {
     for (var i = 0; i < 9; i++) {
 	matrix[i] = randCell();
     }
-    redraw();
 }
 
 function runGravity() {
@@ -178,7 +183,6 @@ function runGravity() {
 	}
 	block--; below--;
     }
-    redraw();
 }
 
 drop();
@@ -236,16 +240,14 @@ function markshapes() {
 	    }
 	}
     }
+    return shapes;
 }
-
 
 // -- counter --------------------------------------------------
 
 function now() { // current time in ms
     return new Date().getTime();
 }
-
-var clockview = d3.select("#clock");
 
 var clock = { start: now() };
 function tick() {
@@ -257,9 +259,10 @@ function tick() {
 	    seconds = 0;
 	    drop();
 	}
-	clockview.text((10-seconds).toString());
 	runGravity();
 	markshapes();
+	state.clock = 10-seconds;
+	redraw();
     }
 }
 var clocktask = window.setInterval(tick, 100);
