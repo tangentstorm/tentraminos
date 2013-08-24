@@ -243,6 +243,24 @@ function markshapes() {
     return shapes;
 }
 
+function clearshapes() {
+    var shapes = markshapes();
+    for (var i = 0; i < shapes.length; i++) {
+	switch (shapes[i].length) {
+	    case 1: break;
+	    case 2: break;
+	    case 3: break;
+	default:
+	    state.score += Math.pow(10, shapes[i].length-3);
+	    for (var j = 0; j<shapes[i].length; j++) {
+		var xy = shapes[i][j];
+		matrix[xy] = 0;
+	    }
+	}
+    }
+}
+
+
 // -- counter --------------------------------------------------
 
 function now() { // current time in ms
@@ -257,6 +275,7 @@ function tick() {
 	if (seconds >= 10) {
 	    clock.start = now();
 	    seconds = 0;
+	    clearshapes();
 	    drop();
 	}
 	runGravity();
