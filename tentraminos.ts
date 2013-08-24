@@ -54,7 +54,11 @@ function redraw() {
 	y: function(i:number){ return cellsize * Math.floor(i/9); },
 	opacity: function(i:number){ return matrix[i] == 0 ? 0 : 1 },
 	fill: function(i:number){ return colors[matrix[i]] },
-	stroke: "black",
+	stroke: function(i:number) {
+	    return matrix[i] >= 9
+		? colors[matrix[i]-9]
+		: "black";
+	},
 	width: cellsize,
 	height: cellsize,
     });
@@ -174,6 +178,62 @@ function runGravity() {
 
 drop();
 
+// -- floodfind ------------------------------------------------
+
+function xy2i(x,y:number) {
+    return y * gw + x;
+}
+
+function findshapes() {
+    var result = [];
+    var startx = 0;
+    var starty = 0;
+    var groups = new Uint32Array((gh+2) * (gw+2));
+    var count = 1;
+    var maxx = gw-1;
+    var maxy = gh-1;
+
+    function floodfind(x, y, shape, color, group) {
+	var i = xy2i(x,y);
+	if (groups[i]==0 && matrix[i]==color) {
+	    groups[i] = group;
+	    shape.push(xy2i(x,y));
+	    if (x > 0)    floodfind(x-1, y, shape, color, group);
+	    if (x < maxx) floodfind(x+1, y, shape, color, group);
+	    if (y > 0)    floodfind(x, y-1, shape, color, group);
+	    if (y < maxy) floodfind(x, y+1, shape, color, group);
+	}
+	return shape;
+    }
+
+    for (var y = 0; y < gh; y++ )
+	for (var x = 0; x < gw; x++ ) {
+	    var i = xy2i(x, y);
+	    if (matrix[i] && matrix[i] < 9 && !groups[i]) {
+		result.push(floodfind(x, y, [], matrix[i], count++));
+	    }
+	}
+
+    return result;
+}
+
+function markshapes() {
+    for (var i = 0; i < matrix.length; i++) {
+	if (matrix[i] > 8) { matrix[i] -= 9; }
+    }
+    var shapes = findshapes();
+    for (var i = 0; i < shapes.length; i++) {
+	var shape = shapes[i];
+	if (shape.length >= 4) {
+	    for (var j = 0; j < shape.length; j++) {
+		var xy = shape[j];
+		if (matrix[xy] < 9) matrix[xy] += 9;
+	    }
+	}
+    }
+}
+
+
 // -- counter --------------------------------------------------
 
 function now() { // current time in ms
@@ -191,7 +251,8 @@ function tick() {
 	seconds = 0;
 	drop();
     }
-    runGravity();
     clockview.text((10-seconds).toString());
+    runGravity();
+    markshapes();
 }
 var clocktask = window.setInterval(tick, 100);
