@@ -5,7 +5,8 @@ var numcells = 81; // you can't have 10 in a row, for obvious reasons :)
 var cells = d3.select("#cells").selectAll("rect")
     .data(d3.range(numcells));
 var cursor = d3.select("#cursor");
-
+var gw = 9; // grid width
+var gh = 9; // grid height
 
 var colors = [
 
@@ -46,15 +47,19 @@ cursor.attr({
 });
 
 cells.enter().append("rect");
-cells.attr({ 
-      x: function(i:number){ return cellsize * (i % 9); },
-      y: function(i:number){ return cellsize * Math.floor(i/9); },
-      fill: function(i:number){ return colors[matrix[i]] },
-      stroke: "black",
-      width: cellsize,
-      height: cellsize,
-  });
 
+function redraw() {
+    cells.attr({
+	x: function(i:number){ return cellsize * (i % 9); },
+	y: function(i:number){ return cellsize * Math.floor(i/9); },
+	fill: function(i:number){ return colors[matrix[i]] },
+	stroke: "black",
+	width: cellsize,
+	height: cellsize,
+    });
+}
+
+redraw();
 
 //-- cursor movement ----------------------------
 
@@ -68,9 +73,9 @@ function movecursor() {
 }
 
 function clamp(val, min, max : number) {
-    return val < min ? min 
-         : val > max ? max
-         : val;
+    return val < min ? min
+	 : val > max ? max
+	 : val;
 }
 
 var codes = {
@@ -78,16 +83,34 @@ var codes = {
     'v' : ()=> { cursor.y = clamp( cursor.y + 1, 0, 7 ); },
     '<' : ()=> { cursor.x = clamp( cursor.x - 1, 0, 7 ); },
     '>' : ()=> { cursor.x = clamp( cursor.x + 1, 0, 7 ); },
+    '(' : ()=> {
+	var cxy = cursor.y * gw + cursor.x;
+	var tmp = matrix[ cxy ];
+	matrix[ cxy          ] = matrix[ cxy + 1      ];  // <
+	matrix[ cxy      + 1 ] = matrix[ cxy + gw + 1 ];  // ^
+	matrix[ cxy + gw + 1 ] = matrix[ cxy + gw     ];  // >
+	matrix[ cxy + gw     ] = tmp;                     // v
+    },
+    ')' : ()=> {
+	var cxy = cursor.y * gw + cursor.x;
+	var tmp = matrix[ cxy ];
+	matrix[ cxy          ] = matrix[ cxy + gw     ];  // ^
+	matrix[ cxy + gw     ] = matrix[ cxy + gw + 1 ];  // <
+	matrix[ cxy + gw + 1 ] = matrix[ cxy      + 1 ];  // v
+	matrix[ cxy      + 1 ] = tmp;                     // >
+    },
 }
 
 
 // -- keyboard controls -------------------------
 
-var dvorak = { 
+var dvorak = {
     72 : '<', // f
     67 : '^', // c
     78 : '>', // n
     84 : 'v', // t
+    79 : '(', // o
+    85 : ')', // j
 }
 var keymap = dvorak;
 
@@ -96,14 +119,13 @@ document.onkeydown = function(e) {
     var code = window.event? event.keyCode: e.keyCode;
     if (keymap.hasOwnProperty(code)) codes[keymap[code]]();
     else switch (code) {
-        case 37 : codes['<'](); break;
+	case 37 : codes['<'](); break;
 	case 38 : codes['^'](); break;
 	case 39 : codes['>'](); break;
-        case 40 : codes['v'](); break;
+	case 40 : codes['v'](); break;
       default: console.log('code:', code)
     }
     movecursor();
+    redraw()
     return false;
 }
-
-
