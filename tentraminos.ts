@@ -31,9 +31,14 @@ var colors = [
     "#cccccc", // 17 almost white
 ];
 
+
+function randCell() {
+    return Math.floor(Math.random() * 9)
+}
+
 var matrix = [];
 for (var i = 0; i < numcells; ++i) {
-    matrix.push(Math.floor(Math.random() * 9));
+    matrix.push(0);
 }
 
 cursor.attr({
