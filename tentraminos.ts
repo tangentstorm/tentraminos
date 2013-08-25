@@ -4,11 +4,12 @@ var cellsize = 32;
 var gw = 9; // grid width: can't have 10 in a row, for obvious reasons :)
 var gh = 9; // grid height
 var numcells = gw * gh;
-
+var clocktask = 0; // setinterval holder
 var state = {
     clock : 0,
     score : 0,
     paused: false,
+    gameOver: false
 }
 
 var clockdiv = d3.select("#clock");
@@ -274,6 +275,17 @@ function clearshapes() {
     }
 }
 
+// -- game over ------------------------------------------------
+
+function checkGameOver() {
+    var result = false;
+    for (var i = 0; i < gw; i++) {
+	if (matrix[i] != 0) result = true;
+    }
+    if (result) clearInterval(clocktask);
+    state.gameOver = result;
+    return result;
+}
 
 // -- counter --------------------------------------------------
 
@@ -290,12 +302,13 @@ function tick() {
 	    clock.start = now();
 	    seconds = 0;
 	    clearshapes();
-	    drop();
+	    if (!checkGameOver()) drop();
 	}
-	runGravity();
-	markshapes();
-	state.clock = 10-seconds;
+	if (!state.gameOver) {
+	    runGravity();
+	    markshapes();
+	}
 	redraw();
     }
 }
-var clocktask = window.setInterval(tick, 100);
+clocktask = window.setInterval(tick, 100);
