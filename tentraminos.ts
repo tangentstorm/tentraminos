@@ -300,10 +300,10 @@ function tick() {
 	var seconds = Math.floor((ms-clock.start) / 1000);
 	if (seconds >= 10) {
 	    clock.start = now();
-	    seconds = 0;
+	    state.clock = 0;
 	    clearshapes();
 	    if (!checkGameOver()) drop();
-	}
+	} else state.clock = 10-seconds;
 	if (!state.gameOver) {
 	    runGravity();
 	    markshapes();
