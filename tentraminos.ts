@@ -265,7 +265,7 @@ function clearshapes() {
 	    case 2: break;
 	    case 3: break;
 	default:
-	    state.score += Math.pow(10, shapes[i].length-3);
+	    state.score += 10*Math.pow(2, shapes[i].length-4);
 	    for (var j = 0; j<shapes[i].length; j++) {
 		var xy = shapes[i][j];
 		matrix[xy] = 0;
