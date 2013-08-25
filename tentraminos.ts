@@ -196,10 +196,13 @@ function drop() {
     }
 }
 
+// return # of "holes" encountered
 function runGravity() {
     var block = gw * (gh-2) + gw-1;
     var below = block + gw;
     var cxy = cursor.y * gw + cursor.x;
+    var result = 0;
+
     for (var y = gh-2; y >= 0; y--)
     for (var x = gw-1; x >= 0; x--) {
 
@@ -210,11 +213,13 @@ function runGravity() {
 	    (block == cxy + gw + 1)) {
 	    // pass
 	} else if (! matrix[below]) {
+	    if (matrix[block]) result++;
 	    matrix[below] = matrix[block];
 	    matrix[block] = 0;
 	}
 	block--; below--;
     }
+    return result;
 }
 
 drop();
