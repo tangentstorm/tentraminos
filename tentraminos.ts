@@ -1,19 +1,22 @@
 var d3;
 
+var SECONDS = 1000;
+
 var cellsize = 32;
 var gw = 9; // grid width: can't have 10 in a row, for obvious reasons :)
 var gh = 9; // grid height
 var numcells = gw * gh;
-var clocktask = 0; // setinterval holder
 var state = {
     clock : 0,
     score : 0,
     paused: false,
-    gameOver: false
+    gameOver: false,
+    next : 0
 }
 
 var clockdiv = d3.select("#clock");
 var scorediv = d3.select("#score");
+var debugtxt = d3.select("#debugtxt");
 var cursor = d3.select("#cursor");
 var cells = d3.select("#cells").selectAll("rect")
     .data(d3.range(numcells));
@@ -91,7 +94,7 @@ function redraw() {
 	height: cellsize,
 
     });
-    clockdiv.text(state.clock.toString());
+    clockdiv.text(Math.floor(state.clock/SECONDS).toString());
     scorediv.text(state.score.toString());
 }
 
@@ -189,11 +192,11 @@ document.onkeydown = function(e) {
 // -- gravity --------------------------------------------------
 
 
-function drop() {
-    for (var i = 0; i <gw; i++) {
-	matrix[i] = hold[i];
-	hold[i] = randCell();
-    }
+function release() {
+    for (var i = 0; i < gw; i++) matrix[i] = hold[i];
+}
+function refill() {
+    for (var i = 0; i < gw; i++) hold[i] = randCell();
 }
 
 // return # of "holes" encountered
@@ -221,8 +224,6 @@ function runGravity() {
     }
     return result;
 }
-
-drop();
 
 // -- floodfind ------------------------------------------------
 
@@ -304,7 +305,6 @@ function checkGameOver() {
     for (var i = 0; i < gw; i++) {
 	if (matrix[i] != 0) result = true;
     }
-    if (result) clearInterval(clocktask);
     state.gameOver = result;
     return result;
 }
@@ -316,21 +316,72 @@ function now() { // current time in ms
 }
 
 var clock = { start: now() };
-function tick() {
-    if (!state.paused) {
-	var ms = now();
-	var seconds = Math.floor((ms-clock.start) / 1000);
-	if (seconds >= 10) {
-	    clock.start = now();
-	    state.clock = 0;
-	    clearshapes();
-	    if (!checkGameOver()) drop();
-	} else state.clock = 10-seconds;
-	if (!state.gameOver) {
-	    runGravity();
-	    markshapes();
-	}
+
+var NEWGAME = 0,
+    PLAYING = 1,
+    PAUSED  = 2,
+    TIMEUP  = 3,
+    THEEND  = 4,
+    NEXTROUND=5,
+    CASCADE  =6,
+    CHECK4END=7;
+
+state.next = NEWGAME;
+
+function step(dt:number) {
+//    debugtxt.text(state.next.toString());
+
+    switch (state.next) {
+	
+    case NEWGAME:
+	refill();
+	release();
+	refill();
 	redraw();
+	return NEXTROUND;
+
+    case NEXTROUND:
+	state.clock = 10 * SECONDS;
+	return PLAYING;
+
+    case PLAYING:
+	state.clock -= dt;
+	runGravity();
+	markshapes();
+	redraw();
+	return (state.paused)     ? PAUSED
+             : (state.clock <= 0) ? TIMEUP
+                                  : PLAYING;
+
+    case PAUSED:
+	return (state.paused) ? PAUSED : PLAYING;
+
+    case TIMEUP:
+	state.clock = 0;
+	release();
+	clearshapes();
+	refill();	
+	redraw();
+	return CASCADE;
+
+    case CASCADE:
+	var count = runGravity();
+	redraw();
+	return count ? CASCADE : CHECK4END;
+
+    case CHECK4END:
+	return checkGameOver() ? THEEND : NEXTROUND;
+
+    case THEEND:
+	return THEEND;
     }
 }
-clocktask = window.setInterval(tick, 100);
+
+var lastTick = now();
+function tick() {
+    var thisTick = now();
+    var dt = thisTick - lastTick;
+    state.next = step(dt);
+    lastTick = thisTick;
+}
+window.setInterval(tick, 100);

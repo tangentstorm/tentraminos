@@ -18,13 +18,16 @@ svg {
     text-shadow: 2px 2px #222;
 }
 
-#clocktxt, #scoretxt {
+#clocktxt, #scoretxt, #debugtxt {
     position : absolute;
     left: 360px;
     top: 50px;
 }
 #scoretxt {
     top: 100px;
+}
+#debugtxt {
+    top: 0px;
 }
 
 #controls {
