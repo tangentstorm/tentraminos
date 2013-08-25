@@ -193,7 +193,10 @@ document.onkeydown = function(e) {
 
 
 function release() {
-    for (var i = 0; i < gw; i++) matrix[i] = hold[i];
+    for (var i = 0; i < gw; i++) {
+	matrix[i] = hold[i];
+	hold[i] = 0;
+    }
 }
 function refill() {
     for (var i = 0; i < gw; i++) hold[i] = randCell();
@@ -332,15 +335,16 @@ function step(dt:number) {
 //    debugtxt.text(state.next.toString());
 
     switch (state.next) {
-	
+
     case NEWGAME:
 	refill();
 	release();
-	refill();
 	redraw();
-	return NEXTROUND;
+	return CASCADE;
 
     case NEXTROUND:
+	refill();
+	redraw();
 	state.clock = 10 * SECONDS;
 	return PLAYING;
 
@@ -350,8 +354,8 @@ function step(dt:number) {
 	markshapes();
 	redraw();
 	return (state.paused)     ? PAUSED
-             : (state.clock <= 0) ? TIMEUP
-                                  : PLAYING;
+	     : (state.clock <= 0) ? TIMEUP
+				  : PLAYING;
 
     case PAUSED:
 	return (state.paused) ? PAUSED : PLAYING;
@@ -360,7 +364,6 @@ function step(dt:number) {
 	state.clock = 0;
 	release();
 	clearshapes();
-	refill();	
 	redraw();
 	return CASCADE;
 
