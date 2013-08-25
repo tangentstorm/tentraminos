@@ -17,6 +17,8 @@ var scorediv = d3.select("#score");
 var cursor = d3.select("#cursor");
 var cells = d3.select("#cells").selectAll("rect")
     .data(d3.range(numcells));
+var holddiv = d3.select("#hold").selectAll("rect")
+    .data(d3.range(gw));
 
 var colors = [
 
@@ -42,8 +44,16 @@ var colors = [
 ];
 
 var matrix = [];
+var hold = [];
+
+function randCell() {
+    return 1 + Math.floor(Math.random() * 8)
+}
+
+
 for (var i = 0; i < numcells; ++i) {
     matrix.push(0);
+    hold.push(randCell());
 }
 
 cursor.attr({
@@ -57,6 +67,7 @@ cursor.attr({
 });
 
 cells.enter().append("rect");
+holddiv.enter().append("rect");
 
 function redraw() {
     cells.attr({
@@ -71,6 +82,14 @@ function redraw() {
 	},
 	width: cellsize,
 	height: cellsize,
+    });
+    holddiv.attr({
+	fill: function(i:number){ return colors[hold[i]] },
+	x: function(i:number){ return cellsize * (i % 9); },
+	stroke: 'black',
+	width: cellsize,
+	height: cellsize,
+
     });
     clockdiv.text(state.clock.toString());
     scorediv.text(state.score.toString());
@@ -169,13 +188,11 @@ document.onkeydown = function(e) {
 
 // -- gravity --------------------------------------------------
 
-function randCell() {
-    return 1 + Math.floor(Math.random() * 8)
-}
 
 function drop() {
-    for (var i = 0; i < 9; i++) {
-	matrix[i] = randCell();
+    for (var i = 0; i <gw; i++) {
+	matrix[i] = hold[i];
+	hold[i] = randCell();
     }
 }
 
